@@ -38,3 +38,9 @@ TrainSet <- cbind(data,yVar)
 #Searching the Mean and Standard deviation column from the complete dataset Point 2
 search <- grep("-mean|-std", colnames(mergeyVar))
 data.mean.std <- mergeyVar[,c(1,2,search)]
+
+activitySet <- cbind(labels,data.mean.std)
+
+
+write.table(mergeyVar,file="merge.txt",row.names = FALSE)
+write.table(data.mean.std,file="data.mean.std.txt",row.names = FALSE)
