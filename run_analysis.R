@@ -13,34 +13,38 @@ yTestDF <- read.table("test/Y_test.txt")
 subjectTestDF <- read.table("test/subject_test.txt")
 
 
-#Reading Activity file, features and features Info txt file
-activityLabels <- read.table("activity_labels.txt")
-features <- read.table("features.txt")
-
-colNames <- data.frame(features[,2])
-library(reshape)
-colNames <-t(colNames)
 
 #Merging X dataset together and Y dataset together Point 1
-data <- rbind(xTrainDF,xTestDF)
-yVar <- rbind(yTrainDF,yTestDF)
+xdata <- rbind(xTrainDF,xTestDF)
+ydata <- rbind(yTrainDF,yTestDF)
+subject_data <- rbind(subjectTrainDF,subjectTestDF)
+
+
+#Reading features files
+features <- read.table("features.txt")
+# Searchign for "Mean | std" col names
+mean_and_std_features <- grep("-(mean|std)\\(\\)", features[, 2])
+xdata <- xdata[,mean_and_std_features]
+names(xdata) <- features[mean_and_std_features,2]
+
+#Reading Activity file, features and features Info txt file
+activityLabels <- read.table("activity_labels.txt")
+ydata[, 1] <- activityLabels[ydata[, 1], 2]
+
+#Changing the column name
+names(ydata) <- "activity"
+
+names(subject_data) <- "subject"
 
 #Getting labels mapped to the outcome
-labels <- merge(yVar,activityLabels,by=1)[,2]
+
+all_data <- cbind(xdata,ydata,subject_data)
 
 
-#Dataset labelled against Descriptive activity Point 4
-mergeyVar <- cbind(data,labels)
+################################33
 
+#Step 5 creates a second, independent tidy data set with the average of each variable for each activity and each subject.
+library(plyr)
+averages_data <- ddply(all_data, .(subject, activity), function(x) colMeans(x[, 1:66]))
 
-TrainSet <- cbind(data,yVar)
-
-#Searching the Mean and Standard deviation column from the complete dataset Point 2
-search <- grep("-mean|-std", colnames(mergeyVar))
-data.mean.std <- mergeyVar[,c(1,2,search)]
-
-activitySet <- cbind(labels,data.mean.std)
-
-
-write.table(mergeyVar,file="merge.txt",row.names = FALSE)
-write.table(data.mean.std,file="data.mean.std.txt",row.names = FALSE)
+write.table(averages_data, "averages_data.txt", row.name=FALSE)
